@@ -17,11 +17,7 @@ function App() {
 
     const handleSongClick = (d) => {
         let newSelectedItems = [];
-        if (
-            selectedItems.some(
-                (item) => item.id === d.id && item.section === d.section
-            )
-        ) {
+        if (selectedItems.some((item) => item.id === d.id && item.section === d.section)) {
             newSelectedItems = selectedItems.filter(
                 (item) => !(item.id === d.id && item.section === d.section)
             );
@@ -69,8 +65,10 @@ function App() {
                     <div>
                         {items.map((item, index) => (
                             <SearchedItem
+                                key={item.id}
                                 index={index}
                                 item={item}
+                                selectedItems={selectedItems}
                                 handleSongClick={handleSongClick}
                                 deleteItem={deleteItem}
                             />

@@ -1,6 +1,14 @@
 import * as d3 from "d3";
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { COLOR_SCHEME, ROMAN_NUMERALS, STROKE_DASHARRAYS } from "@/common";
+import {
+    COLOR_SCHEME,
+    ROMAN_NUMERALS,
+    STROKE_DASHARRAYS,
+    ANIMATION,
+    isEmpty,
+    OPACITY,
+    isSelected,
+} from "../common";
 import { toast } from "react-toastify";
 
 const ParallelCoordinates = ({
@@ -59,9 +67,18 @@ const ParallelCoordinates = ({
     };
 
     const selectedItemsRef = useRef([]);
+    const oldSelectedItemsRef = useRef([]);
+    let opacityStartingValues = {}
     useEffect(() => {
         selectedItemsRef.current = selectedItems;
+        d3.selectAll("path")
+            .filter(d => !isEmpty(d) && isSelected(selectedItems, d))
+            .each(function () {
+                const opacity = d3.select(this).style("opacity");
+                opacityStartingValues[this.__data__.id + "-" + this.__data__.section] = opacity;
+            });
         drawChart();
+        oldSelectedItemsRef.current = selectedItems;
     }, [selectedItems]);
 
     const tooltip = useRef();
@@ -91,34 +108,48 @@ const ParallelCoordinates = ({
 
         // 선 그리기 함수
         const path = (d) => {
-            const points = d.chords.map((c) => c.root);
-			
-            return d3.line().curve(d3.curveCardinal.tension(.5))(
-                dimensions.map((p) => [x(p), y(points[p])]).filter((p) => p[1] !== undefined)
-            );
+            const points = d.chords.map(c => c.root);
+            const validPoints = points.map(p => p >= 1 && p <= 7);
+			const coords = dimensions.map(p => [x(p), y(points[p])]).filter((p, i) => validPoints[i] && p[1] !== undefined);
+
+            return d3.line().curve(d3.curveCardinal.tension(.5))(coords);
         };
 
         let hoverTimeout;
 
-        const setOpacityWhenSelected = (newSelectedItems) => {
-            // console.log(newSelectedItems);
-
-            svg.selectAll("path").each(function () {
-                d3.select(this).style("opacity", (d) => {
-                    if (!d) return 1;
-                    if (newSelectedItems.length === 0) return 0.4;
-                    if (
-                        newSelectedItems.some(
-                            (item) =>
-                                item.id === d.id && item.section === d.section
-                        )
-                    ) {
-                        return 0.8;
-                    } else {
-                        return 0.1;
-                    }
+        const getMyOpacity = (d, newSelectedItems) => {
+            if (!d) return 1;
+            if (newSelectedItems.length === 0) return OPACITY.DEFAULT;
+            if (newSelectedItems.some((item) => item.id === d.id && item.section === d.section)) {
+                return OPACITY.SELECTED;
+            }
+            return OPACITY.UNSELECTED;
+        }
+        
+        const setEveryOpacity = (isRenew) => {
+            if(isRenew){
+                svg.selectAll("path")
+                    .each(function () {
+                        d3.select(this)
+                            .style("opacity", d => {
+                                if (!isEmpty(d) && isSelected(selectedItemsRef.current, d)) {
+                                    return opacityStartingValues[d.id + "-" + d.section] || OPACITY.SELECTED;
+                                }
+                                return getMyOpacity(d, oldSelectedItemsRef.current);
+                            })
+                    })
+            }
+            svg.selectAll("path")
+                .each(function () {
+                    d3.select(this)
+                        .transition()
+                        .duration(ANIMATION.HOVER_DURATION)
+                        .ease(ANIMATION.EASE)
+                        .style("opacity", d => {
+                            return getMyOpacity(d, selectedItemsRef.current);
+                        });
                 });
-            });
+                
         };
 
         // 선 그리기
@@ -134,30 +165,55 @@ const ParallelCoordinates = ({
             .each(function () {
                 // d3.select(this)
                 //   .attr("stroke-dasharray", d => STROKE_DASHARRAYS[d.section] || "")
-                setOpacityWhenSelected(selectedItemsRef.current);
                 const totalLength = this.getTotalLength();
-                // console.log(addedItem, this.__data__.id);
-
+                
                 if (addedItem && addedItem.id === this.__data__.id) {
+                    console.log("애니메이션 시작", this.__data__);
+                
+                    d3.selectAll("path")
+                        .filter(d => !isEmpty(d) && d.id !== this.__data__.id)
+                        .transition()
+                        .duration(ANIMATION.INOUT_DURATION)
+                        .ease(ANIMATION.EASE)
+                        .style("opacity", OPACITY.UNSELECTED)
+                        .transition()
+                        .duration(ANIMATION.MAIN_DURATION - ANIMATION.INOUT_DURATION)
+                        .transition()
+                        .duration(ANIMATION.INOUT_DURATION)
+                        .ease(ANIMATION.EASE)
+                        .style("opacity", d => getMyOpacity(d, selectedItemsRef.current));
+                    
                     d3.select(this)
+                        .style("opacity", OPACITY.SELECTED)
                         .attr(
                             "stroke-dasharray",
                             totalLength + " " + totalLength
                         )
                         .attr("stroke-dashoffset", totalLength)
                         .transition()
-                        .duration(1500) // 애니메이션 길이 (ms)
-                        .ease(d3.easeCubic)
-                        .attr("stroke-dashoffset", 0);
+                        .duration(ANIMATION.MAIN_DURATION)
+                        .ease(ANIMATION.EASE)
+                        .attr("stroke-dashoffset", 0)
+                        .transition()
+                        .duration(ANIMATION.INOUT_DURATION)
+                        .ease(ANIMATION.EASE)
+                        .style("opacity", d => getMyOpacity(d, selectedItemsRef.current))
+                        ;
+                        
                     setTimeout(() => {
                         setAddedItem(null); // 애니메이션 후 addedItem 초기화
                     }, 10);
+                } else {
+                    setEveryOpacity(true);
                 }
             })
             .on("mouseover", function (event, d) {
                 clearTimeout(hoverTimeout);
-
-                d3.select(this).style("opacity", 0.8);
+                
+                d3.select(this)
+                .transition()
+                .duration(ANIMATION.HOVER_DURATION)
+                .style("opacity", OPACITY.SELECTED);
 
                 tooltip.current.style.visibility = "visible";
                 tooltip.current.innerHTML = parseTooltip(d);
@@ -168,11 +224,7 @@ const ParallelCoordinates = ({
             })
             .on("mouseout", function () {
                 hoverTimeout = setTimeout(() => {
-                    if (selectedItemsRef.current.length === 0) {
-                        svg.selectAll("path").style("opacity", 0.4);
-                    } else {
-                        setOpacityWhenSelected(selectedItemsRef.current);
-                    }
+                    setEveryOpacity(false);
                 }, 0);
                 tooltip.current.style.visibility = "hidden";
             })
@@ -197,7 +249,7 @@ const ParallelCoordinates = ({
             .append("text")
             .style("text-anchor", "middle")
             .attr("y", -9)
-            .text((d) => d)
+            .text((d) => d+1)
             .style("fill", "black");
     };
 

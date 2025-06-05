@@ -13,17 +13,16 @@ export default function Search({ items, setItems, addedItem, setAddedItem }) {
     const handleOnSearch = (string, results) => {
         // onSearch will have as the first callback parameter
         // the string searched and for the second the results.
-        console.log(string, results)
+        // console.log(string, results)
     }
 
     const handleOnHover = (result) => {
         // the item hovered
-        console.log(result)
+        // console.log(result)
     }
 
     const handleOnSelect = async (item) => {
         // the item selected
-        console.log(item)
         if (items.some(i => i.id === item.id)) {
             console.log('Item already exists in the list')
         } else if (items.length >= 10) {
@@ -50,7 +49,7 @@ export default function Search({ items, setItems, addedItem, setAddedItem }) {
     }
 
     const handleOnFocus = () => {
-        console.log('Focused')
+        // console.log('Focused')
     }
 
     const formatResult = (item) => {

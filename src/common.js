@@ -1,3 +1,5 @@
+import * as d3 from 'd3';
+
 const COLOR_SCHEME = [
     '#FF5733', // Red
     '#33FF57', // Green
@@ -40,9 +42,48 @@ const STROKE_DASHARRAYS = {
 
 const CHORD_TYPES = [5,7,9]
 
+const isEmpty = element => {
+    if (element === null || element === undefined) {
+        return true;
+    }
+    if (typeof element === 'string' && element.trim() === '') {
+        return true;
+    }
+    if (Array.isArray(element) && element.length === 0) {
+        return true;
+    }
+    if (typeof element === 'object' && Object.keys(element).length === 0) {
+        return true;
+    }
+    return false;
+}
+
+/* animation config */
+const ANIMATION = {
+    EASE: d3.easeCubicInOut,
+    MAIN_DURATION: 1500,
+    INOUT_DURATION: 500,
+    HOVER_DURATION: 200 
+}
+
+/* opacity config */
+const OPACITY = {
+    DEFAULT: 0.4,
+    SELECTED: 0.8,
+    UNSELECTED: 0.1
+}
+
+const isSelected = (selectedItems, d) => {
+    return selectedItems.some(item => item.id === d.id && item.section === d.section);
+}
+
 export {
     COLOR_SCHEME,
     ROMAN_NUMERALS,
     STROKE_DASHARRAYS,
-    CHORD_TYPES
+    CHORD_TYPES,
+    ANIMATION,
+    isEmpty,
+    OPACITY,
+    isSelected
 }

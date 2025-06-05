@@ -29,8 +29,6 @@ const Compare = ({ selectedItems }) => {
     const xOffset = 50;
     const bottomMargin = 80;
 
-
-
     useEffect(() => {
         drawChart()
     }, [selectedItems]);
@@ -38,7 +36,6 @@ const Compare = ({ selectedItems }) => {
     const drawChart = () => {
         const maxLength = Math.max(...selectedItems.map(item => item.chords.length));
 
-        console.log(selectedItems);
         const svg = d3.select(ref.current);
         svg.selectAll("*").remove();
 
@@ -53,7 +50,7 @@ const Compare = ({ selectedItems }) => {
 
         for (let i = 0; i < maxLength; i++) {
             const groupX = xOffset + i * spacing;
-            const numberOfAlive = selectedItems.filter(item => item.chords[i]).length;
+            const numberOfAlive = selectedItems.filter(item => item.chords[i] && item.chords[i].root >= 1 && item.chords[i].root <= 7).length;
             const isSameChord = numberOfAlive > 1 && new Set(selectedItems.map(item => item.chords[i].root)).size === 1;
             const realBarWidth = barWidth / numberOfAlive
             let order = 0
@@ -74,6 +71,7 @@ const Compare = ({ selectedItems }) => {
                     // .attr("opacity", 0.6);
                 }
                 const root = chord.root;
+                if (!root || root < 1 || root > 7) continue; // 유효한 루트인지 확인
                 const type = chord.type;
                 const probs = data1[root];
                 const barX = groupX + order * realBarWidth;
