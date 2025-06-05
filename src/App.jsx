@@ -4,7 +4,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import Header from "@/components/Header";
 import Search from "@/components/Search";
-import Test from "@/components/Test";
+import ParallelCoordinate from "@/components/ParallelCoordinate";
 import Compare from "@/components/Compare";
 import SearchedItem from "@/components/SearchedItem"
 import { ToastContainer } from "react-toastify";
@@ -42,7 +42,7 @@ function App() {
             <Header />
             <div className="flex w-full h-screen bg-gray-100">
                 <div className="w-7/12">
-                    <Test
+                    <ParallelCoordinate
                         items={items}
                         addedItem={addedItem}
                         setAddedItem={setAddedItem}
@@ -76,7 +76,9 @@ function App() {
                     </div>
                 </div>
             </div>
-            <ToastContainer position="top-left" />
+            <ToastContainer
+                position="top-left"
+                hideProgressBar={true}/>
         </>
     );
 }

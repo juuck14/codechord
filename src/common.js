@@ -77,6 +77,81 @@ const isSelected = (selectedItems, d) => {
     return selectedItems.some(item => item.id === d.id && item.section === d.section);
 }
 
+/* chord convert */
+const getDiatonicScale = (tonic, scale) => {
+    const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const SCALES = {
+        "major": [0, 2, 4, 5, 7, 9, 11],
+        "minor": [0, 2, 3, 5, 7, 8, 10],
+        "harmonicMinor": [0, 2, 3, 5, 7, 8, 11],
+        "melodicMinor": [0, 2, 3, 5, 7, 9, 11],
+        "dorian": [0, 2, 3, 5, 7, 9, 10],
+        "mixolydian": [0, 2, 4, 5, 7, 9, 10],
+        "phrygian": [0, 1, 3, 5, 7, 8, 10],
+        "lydian": [0, 2, 4, 6, 7, 9, 11],
+        "locrian": [0, 1, 3, 5, 6, 8, 10]
+    }
+
+
+    const tonicIndex = NOTES_SHARP.indexOf(tonic);
+    const intervals = SCALES[scale];
+    const scaleNotes = intervals.map(i => NOTES_SHARP[(tonicIndex + i) % 12]);
+
+    return scaleNotes;
+}
+
+const chordToString = (chord, key) => {
+    if (isEmpty(chord) || chord.root < 1 || chord.root > 7) {
+        return "X";
+    }
+    const degree = chord.root - 1;  // 1~7 → 0-based index
+    const scaleNotes = getDiatonicScale(key.tonic, key.scale);
+    const rootNote = scaleNotes[degree];
+
+    let suffix = "";
+
+    // type 처리
+    if (chord.type === 5) {
+        suffix = "";
+    } else if (chord.type === 7) {
+        suffix = "7";
+    } else {
+        // 기본 triad (스케일 기반 추정)
+        if (key.scale === 'minor') {
+            if ([0, 3, 4].includes(degree)) {
+                suffix = "m";
+            } else {
+                suffix = "";
+            }
+        } else {
+            if ([1, 2, 5].includes(degree)) {
+                suffix = "m";
+            } else {
+                suffix = "";
+            }
+        }
+    }
+
+    // suspension 처리
+    if (chord.suspensions === 2) {
+        suffix += "sus2";
+    } else if (chord.suspensions === 4) {
+        suffix += "sus4";
+    }
+
+    // adds 처리
+    if (chord.adds === 9) {
+        suffix += "add9";
+    } else if (chord.adds === 11) {
+        suffix += "add11";
+    } else if (chord.adds === 13) {
+        suffix += "add13";
+    }
+
+    return rootNote + suffix;
+}
+
+
 export {
     COLOR_SCHEME,
     ROMAN_NUMERALS,
@@ -85,5 +160,6 @@ export {
     ANIMATION,
     isEmpty,
     OPACITY,
-    isSelected
+    isSelected,
+    chordToString
 }

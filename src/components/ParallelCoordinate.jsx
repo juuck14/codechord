@@ -8,6 +8,7 @@ import {
     isEmpty,
     OPACITY,
     isSelected,
+    chordToString,
 } from "../common";
 import { toast } from "react-toastify";
 
@@ -61,7 +62,7 @@ const ParallelCoordinates = ({
       </div>
       <div>Section: ${d.section}</div>
       <div>Chords: ${d.chords
-          .map((c) => ROMAN_NUMERALS[c.root - 1])
+          .map((c) => chordToString(c, d.key))
           .join(" - ")}</div>
     `;
     };
@@ -116,6 +117,7 @@ const ParallelCoordinates = ({
         };
 
         let hoverTimeout;
+        let isAnimationRunning = false;
 
         const getMyOpacity = (d, newSelectedItems) => {
             if (!d) return 1;
@@ -169,7 +171,11 @@ const ParallelCoordinates = ({
                 
                 if (addedItem && addedItem.id === this.__data__.id) {
                     console.log("애니메이션 시작", this.__data__);
-                
+                    isAnimationRunning = true;
+                    setTimeout(() => {
+                        isAnimationRunning = false;
+                    }, ANIMATION.MAIN_DURATION + ANIMATION.INOUT_DURATION);
+
                     d3.selectAll("path")
                         .filter(d => !isEmpty(d) && d.id !== this.__data__.id)
                         .transition()
@@ -208,6 +214,7 @@ const ParallelCoordinates = ({
                 }
             })
             .on("mouseover", function (event, d) {
+                if (isAnimationRunning) return; // 애니메이션 중에는 마우스 오버 이벤트 무시
                 clearTimeout(hoverTimeout);
                 
                 d3.select(this)
@@ -219,16 +226,19 @@ const ParallelCoordinates = ({
                 tooltip.current.innerHTML = parseTooltip(d);
             })
             .on("mousemove", function (event) {
+                if (isAnimationRunning) return; // 애니메이션 중에는 마우스 무브 이벤트 무시
                 tooltip.current.style.top = event.pageY + 10 + "px";
                 tooltip.current.style.left = event.pageX + 10 + "px";
             })
             .on("mouseout", function () {
+                if (isAnimationRunning) return; // 애니메이션 중에는 마우스 아웃 이벤트 무시
                 hoverTimeout = setTimeout(() => {
                     setEveryOpacity(false);
                 }, 0);
                 tooltip.current.style.visibility = "hidden";
             })
             .on("click", function (event, d) {
+                if (isAnimationRunning) return; // 애니메이션 중에는 클릭 이벤트 무시
                 handleSongClick(d);
             });
 

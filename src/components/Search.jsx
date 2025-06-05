@@ -27,7 +27,6 @@ export default function Search({ items, setItems, addedItem, setAddedItem }) {
             console.log('Item already exists in the list')
         } else if (items.length >= 10) {
             console.log('Maximum of 10 items reached')
-            clearInput()
         } else {
             setItems([...items, item])
             setAddedItem(item)
