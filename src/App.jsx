@@ -56,7 +56,7 @@ function App() {
                     />
                 </div>
 
-                <div style={{ width: 401 }}>
+                <div style={{ width: 400 }}>
                     <Search
                         items={items}
                         setItems={setItems}
