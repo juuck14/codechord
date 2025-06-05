@@ -113,7 +113,7 @@ const ParallelCoordinates = ({
             const validPoints = points.map(p => p >= 1 && p <= 7);
 			const coords = dimensions.map(p => [x(p), y(points[p])]).filter((p, i) => validPoints[i] && p[1] !== undefined);
 
-            return d3.line().curve(d3.curveCardinal.tension(.5))(coords);
+            return d3.line().curve(d3.curveCardinal.tension(0.4))(coords);
         };
 
         let hoverTimeout;
@@ -154,16 +154,51 @@ const ParallelCoordinates = ({
                 
         };
 
-        // 선 그리기
+        const defs = svg.append("defs");
+
+        // 데이터마다 unique gradient 생성
+        COLOR_SCHEME.forEach((color, i) => {
+            const gradient = defs.append("linearGradient")
+                .attr("id", `line-gradient-${i}`)
+                .attr("gradientUnits", "userSpaceOnUse")
+                .attr("x1", 0)
+                .attr("y1", 0)
+                .attr("x2", width)
+                .attr("y2", 0);
+
+            function gentleShade(color, brightenAmount = 10) {
+                let hcl = d3.hcl(color);
+                hcl.l = Math.min(100, hcl.l + brightenAmount);
+                return hcl.toString();
+            }
+
+
+            gradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", color);
+
+            gradient.append("stop")
+                .attr("offset", "25%")
+                .attr("stop-color", gentleShade(color));
+
+            gradient.append("stop")
+                .attr("offset", "50%")
+                .attr("stop-color", color);
+
+            gradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", gentleShade(color));
+        });
+
         svg.selectAll("path")
             .data(data)
             .enter()
             .append("path")
             .attr("d", path)
             .style("fill", "none")
-            .style("stroke", (d) => COLOR_SCHEME[d.index])
+            .style("stroke", (d, i) => `url(#line-gradient-${d.index})`)
             .style("cursor", "pointer")
-            .attr("stroke-width", 4)
+            .attr("stroke-width", 3)
             .each(function () {
                 // d3.select(this)
                 //   .attr("stroke-dasharray", d => STROKE_DASHARRAYS[d.section] || "")

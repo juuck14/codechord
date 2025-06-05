@@ -78,7 +78,8 @@ function App() {
             </div>
             <ToastContainer
                 position="top-left"
-                hideProgressBar={true}/>
+                hideProgressBar={true}
+                />
         </>
     );
 }

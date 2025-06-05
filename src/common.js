@@ -1,17 +1,17 @@
 import * as d3 from 'd3';
 
 const COLOR_SCHEME = [
-    '#FF5733', // Red
-    '#33FF57', // Green
-    '#3357FF', // Blue
-    '#F1C40F', // Yellow
-    '#8E44AD', // Purple
-    '#E67E22', // Orange
-    '#2ECC71', // Emerald
-    '#3498DB', // Sky Blue
-    '#9B59B6', // Amethyst
-    '#F39C12', // Pumpkin
-]
+    "#E63946",  // strong red
+    "#F1FA8C",  // soft yellow
+    "#A8DADC",  // mint blue
+    "#457B9D",  // rich blue
+    "#FFB703",  // warm gold
+    "#FB8500",  // orange
+    "#219EBC",  // sea blue
+    "#8ECAE6",  // sky blue
+    "#9B5DE5",  // purple
+    "#F15BB5"   // pink
+];
 
 const ROMAN_NUMERALS = [
     'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'
@@ -68,7 +68,7 @@ const ANIMATION = {
 
 /* opacity config */
 const OPACITY = {
-    DEFAULT: 0.4,
+    DEFAULT: 0.5,
     SELECTED: 0.8,
     UNSELECTED: 0.1
 }
