@@ -1,17 +1,26 @@
 import * as d3 from 'd3';
 
 const COLOR_SCHEME = [
-    "#E63946",  // strong red
-    "#F1FA8C",  // soft yellow
-    "#A8DADC",  // mint blue
-    "#457B9D",  // rich blue
-    "#FFB703",  // warm gold
-    "#FB8500",  // orange
-    "#219EBC",  // sea blue
-    "#8ECAE6",  // sky blue
-    "#9B5DE5",  // purple
-    "#F15BB5"   // pink
+    "#0095FF",  // 파랑
+    "#00E096",  // 민트
+    "#EF4444",  // 빨강
+    "#A700FF",  // 퍼플
+    "#FFA500",  // 주황
+    "#00C8FF",  // 밝은 블루
+    "#FF69B4",  // 핑크
+    "#8A2BE2",  // 블루바이올렛
+    "#00FF7F",  // 스프링그린
+    "#FFD700",  // 골드
 ];
+
+
+const GRAY_COLOR_SCHEME = [
+    "#EEEEEE",
+    "#DDDDDD",
+    "#CCCCCC",
+    "#BBBBBB",
+    "#9A9A9A",
+]
 
 const ROMAN_NUMERALS = [
     'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'
@@ -70,7 +79,7 @@ const ANIMATION = {
 const OPACITY = {
     DEFAULT: 0.5,
     SELECTED: 0.8,
-    UNSELECTED: 0.1
+    UNSELECTED: 0.05
 }
 
 const isSelected = (selectedItems, d) => {
@@ -109,51 +118,107 @@ const chordToString = (chord, key) => {
     const rootNote = scaleNotes[degree];
 
     let suffix = "";
-
-    // type 처리
-    if (chord.type === 5) {
-        suffix = "";
-    } else if (chord.type === 7) {
-        suffix = "7";
-    } else {
-        // 기본 triad (스케일 기반 추정)
-        if (key.scale === 'minor') {
-            if ([0, 3, 4].includes(degree)) {
-                suffix = "m";
-            } else {
-                suffix = "";
-            }
+    if (key.scale === 'minor') {
+        if ([0, 3, 4].includes(degree)) {
+            suffix = "m";
         } else {
-            if ([1, 2, 5].includes(degree)) {
-                suffix = "m";
-            } else {
-                suffix = "";
-            }
+            suffix = "";
+        }
+    } else {
+        if ([1, 2, 5].includes(degree)) {
+            suffix = "m";
+        } else {
+            suffix = "";
         }
     }
 
-    // suspension 처리
-    if (chord.suspensions === 2) {
-        suffix += "sus2";
-    } else if (chord.suspensions === 4) {
-        suffix += "sus4";
-    }
-
-    // adds 처리
-    if (chord.adds === 9) {
-        suffix += "add9";
-    } else if (chord.adds === 11) {
-        suffix += "add11";
-    } else if (chord.adds === 13) {
-        suffix += "add13";
-    }
+    // type 처리
+    suffix += addVariants(chord);
 
     return rootNote + suffix;
 }
 
+/**
+ * chord 객체로부터 full string을 생성하여 반환합니다.
+ *
+ * type 값(5, 7, 9, 11, 13):
+ *   5  → 기본 triad (아무 문자열도 붙이지 않음)
+ *   7  → "7"
+ *   9  → "9"
+ *   11 → "11"
+ *   13 → "13"
+ *
+ * suspensions 값(2, 4, null):
+ *   2 → "sus2"
+ *   4 → "sus4"
+ *   null → 추가 없음
+ *
+ * adds 값(4, 6, 9, null):
+ *   4 → "add4"
+ *   6 → "add6"
+ *   9 → "add9"
+ *   null → 추가 없음
+ *
+ * @param {Object} chord
+ * @param {number|null} chord.type        - 코드 타입 (5, 7, 9, 11, 13)
+ * @param {number|null} chord.adds        - adds 정보 (4, 6, 9 중 하나 또는 null)
+ * @param {number|null} chord.suspensions - suspensions 정보 (2, 4 중 하나 또는 null)
+ * @returns {string} full string (예: "7sus4add9", "sus4" 등)
+ */
+const addVariants = chord => {
+  const { type, adds, suspensions } = chord;
+  const variants = [];
+
+  // 1) type 처리: 5는 기본 triad(아무 문자열 없이), 7/9/11/13은 해당 숫자 문자열로 추가
+  if (type && type !== 5) {
+    variants.push(String(type));
+  }
+
+  // 2) suspensions 처리: 2 또는 4인 경우 "sus" + 숫자 문자열로 추가
+  if (suspensions === 2 || suspensions === 4) {
+    variants.push(`sus${suspensions}`);
+  }
+
+  // 3) adds 처리: 4, 6, 9인 경우 "add" + 숫자 문자열로 추가
+  if (adds === 4 || adds === 6 || adds === 9) {
+    variants.push(`add${adds}`);
+  }
+
+  // 4) variants 배열을 이어붙여서 반환 (없으면 빈 문자열)
+  return variants.join('');
+}
+
+/* parallel coordinate style*/
+const PARALLEL_COORDINATE_STYLE = {
+    MARGIN: { TOP: 16, RIGHT: 27, BOTTOM: 16, LEFT: 31 },
+    X_LABEL_MARGIN: { TOP: 12 },
+    TICK_SIZE: 10,
+    TICK_PADDING: 8,
+    WIDTH: 1234,
+    HEIGHT: 397,
+    GRAPH_HEIGHT: 361,
+};
+
+const COMPARE_STYLE = {
+    WIDTH: 1325,
+    Y_LABEL_WIDTH: 19,
+    X_OFFSET_SIDE: 13,
+    BAR_WIDTH: 98,
+    BAR_GAP: 10,
+    SPACING: 168,
+    BAR_HEIGHT: 190,
+    X_LABEL_TOP_HEIGHT: 40,
+    X_LABEL_TOP_FONT_SIZE: 16,
+    MARGIN: { TOP: 19, LEFT:3, BOTTOM: 9 },
+    X_LABEL_BOTTOM_HEIGHT: 24,
+    HEIGHT: function() {
+        return this.X_LABEL_TOP_HEIGHT + this.MARGIN.TOP + this.BAR_HEIGHT + this.MARGIN.BOTTOM + this.X_LABEL_BOTTOM_HEIGHT;
+    },
+}
 
 export {
     COLOR_SCHEME,
+    GRAY_COLOR_SCHEME,
     ROMAN_NUMERALS,
     STROKE_DASHARRAYS,
     CHORD_TYPES,
@@ -161,5 +226,8 @@ export {
     isEmpty,
     OPACITY,
     isSelected,
-    chordToString
+    chordToString,
+    addVariants,
+    PARALLEL_COORDINATE_STYLE,
+    COMPARE_STYLE
 }

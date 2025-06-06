@@ -61,21 +61,29 @@ export default function Search({ items, setItems, addedItem, setAddedItem }) {
     }
 
     return (
-        <div className="App">
-        <header className="App-header">
-                <ReactSearchAutocomplete
-                    items={data}
-                    fuseOptions={{ keys: ["song", "artist"] }}
-                    resultStringKeyName="song"
-                    onSearch={handleOnSearch}
-                    onHover={handleOnHover}
-                    onSelect={handleOnSelect}
-                    onFocus={handleOnFocus}
-                    showClear
-                    autoFocus
-                    formatResult={formatResult}
-                />
-        </header>
-        </div>
+        <ReactSearchAutocomplete
+            className="search-bar"
+            items={data}
+            fuseOptions={{ keys: ["song", "artist"] }}
+            resultStringKeyName="song"
+            onSearch={handleOnSearch}
+            onHover={handleOnHover}
+            onSelect={handleOnSelect}
+            onFocus={handleOnFocus}
+            showClear
+            autoFocus
+            formatResult={formatResult}
+            placeholder="Search here..."
+            styling={{
+                width: "394px",
+                height: "60px",
+                boxShadow: "none",
+                border: "none",
+                backgroundColor: "var(--background-color)",
+                borderRadius: "16px",
+                searchIconMargin: '0 0 0 24px',
+                fontFamily: "var(--main-font)",
+            }}
+        />
     )
 }

@@ -28,7 +28,6 @@ function App() {
                 return;
             }
         }
-        // console.log(newSelectedItems);
 
         setSelectedItems(newSelectedItems);
     };
@@ -39,9 +38,9 @@ function App() {
 
     return (
         <>
-            <Header />
-            <div className="flex w-full h-screen bg-gray-100">
-                <div className="w-7/12">
+            {/* <Header /> */}
+            <div id="app">
+                <div className="left-side">
                     <ParallelCoordinate
                         items={items}
                         addedItem={addedItem}
@@ -56,13 +55,16 @@ function App() {
                     />
                 </div>
 
-                <div style={{ width: 400 }}>
+                <div className="right-side">
+                    <div className="main-title">
+                        CodeChord
+                    </div>
                     <Search
                         items={items}
                         setItems={setItems}
                         setAddedItem={setAddedItem}
                     />
-                    <div>
+                    <div className="searched-items-area">
                         {items.map((item, index) => (
                             <SearchedItem
                                 key={item.id}

@@ -9,6 +9,7 @@ import {
     OPACITY,
     isSelected,
     chordToString,
+    PARALLEL_COORDINATE_STYLE
 } from "../common";
 import { toast } from "react-toastify";
 
@@ -57,13 +58,17 @@ const ParallelCoordinates = ({
         // console.log();
 
         return `
-      <div style="font-weight: bold; color: ${COLOR_SCHEME[d.index]}">
-        ${d.artist} - ${d.song}
-      </div>
-      <div>Section: ${d.section}</div>
-      <div>Chords: ${d.chords
-          .map((c) => chordToString(c, d.key))
-          .join(" - ")}</div>
+        <div style="font-weight: bold;">
+            <div
+            class="color-indicator-sm"
+            style="display: inline-block; background-color: ${COLOR_SCHEME[d.index]}">
+            </div>
+            ${d.artist} - ${d.song}
+        </div>
+        <div>Section: ${d.section}</div>
+        <div>Chords: ${d.chords
+            .map((c) => chordToString(c, d.key))
+            .join(" - ")}</div>
     `;
     };
 
@@ -85,27 +90,24 @@ const ParallelCoordinates = ({
     const tooltip = useRef();
 
     const drawChart = () => {
-        const margin = { top: 30, right: 10, bottom: 10, left: 10 },
-            width = 800 - margin.left - margin.right,
-            height = 400 - margin.top - margin.bottom;
 
         d3.select(ref.current).selectAll("*").remove(); // 기존 차트 삭제
 
         const svg = d3
             .select(ref.current)
             .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
+            .attr("width", PARALLEL_COORDINATE_STYLE.WIDTH)
+            .attr("height", PARALLEL_COORDINATE_STYLE.HEIGHT)
             .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
+            // .attr("transform", `translate(${PARALLEL_COORDINATE_STYLE.MARGIN.LEFT},${PARALLEL_COORDINATE_STYLE.MARGIN.TOP})`);  
 
         // 데이터의 차원 추출
         const dimensions = [0, 1, 2, 3, 4, 5, 6, 7];
 
         // 각 차원의 스케일
-        const y = d3.scaleLinear().domain([1, 7]).range([height, 0]);
+        const y = d3.scaleLinear().domain([1, 7]).range([PARALLEL_COORDINATE_STYLE.GRAPH_HEIGHT - PARALLEL_COORDINATE_STYLE.MARGIN.BOTTOM, PARALLEL_COORDINATE_STYLE.MARGIN.TOP]);
 
-        const x = d3.scalePoint().range([0, width]).domain(dimensions);
+        const x = d3.scalePoint().range([PARALLEL_COORDINATE_STYLE.MARGIN.LEFT, PARALLEL_COORDINATE_STYLE.WIDTH - PARALLEL_COORDINATE_STYLE.MARGIN.RIGHT]).domain(dimensions);
 
         // 선 그리기 함수
         const path = (d) => {
@@ -113,7 +115,7 @@ const ParallelCoordinates = ({
             const validPoints = points.map(p => p >= 1 && p <= 7);
 			const coords = dimensions.map(p => [x(p), y(points[p])]).filter((p, i) => validPoints[i] && p[1] !== undefined);
 
-            return d3.line().curve(d3.curveCardinal.tension(0.4))(coords);
+            return d3.line().curve(d3.curveCardinal.tension(0.7))(coords);
         };
 
         let hoverTimeout;
@@ -163,7 +165,7 @@ const ParallelCoordinates = ({
                 .attr("gradientUnits", "userSpaceOnUse")
                 .attr("x1", 0)
                 .attr("y1", 0)
-                .attr("x2", width)
+                .attr("x2", PARALLEL_COORDINATE_STYLE.WIDTH)
                 .attr("y2", 0);
 
             function gentleShade(color, brightenAmount = 10) {
@@ -288,19 +290,36 @@ const ParallelCoordinates = ({
                     d3
                         .axisLeft(y)
                         .ticks(7)
+                        .tickSize(PARALLEL_COORDINATE_STYLE.TICK_SIZE)
                         .tickFormat((d) => ROMAN_NUMERALS[d - 1])
+                        .tickPadding(PARALLEL_COORDINATE_STYLE.TICK_PADDING)
                 );
             })
             .append("text")
-            .style("text-anchor", "middle")
-            .attr("y", -9)
-            .text((d) => d+1)
-            .style("fill", "black");
+            .attr("class", "x-label")
+            .attr("y", PARALLEL_COORDINATE_STYLE.GRAPH_HEIGHT + PARALLEL_COORDINATE_STYLE.X_LABEL_MARGIN.TOP)
+            .text((d) => `Bar ${d+1}`)
+
     };
 
     return (
-        <div>
-            <div ref={ref}></div>
+        <>
+            <div className="parallel-coordinates">
+                <div className="title-area">Chord Progression Patterns Across Songs</div>
+                <div className="graph-area" ref={ref}></div>
+                <div className="legend-area">
+                    {items.map((item, index) => (
+                        <div className="flex items-center">
+                            <div
+                                className="color-indicator-sm"
+                                style={{
+                                    backgroundColor: COLOR_SCHEME[index],
+                                }}/>
+                            <div>{item.song}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
             <div
                 style={{
                     position: "absolute",
@@ -315,15 +334,7 @@ const ParallelCoordinates = ({
                 }}
                 ref={tooltip}
             ></div>
-
-            {/* <div className="flex flex-row">
-        {sections.map((section, index) => (
-          <div key={index} className="flex mr-2">
-            <span>{section}</span>
-          </div>
-        ))}
-      </div> */}
-        </div>
+        </>
     );
 };
 
