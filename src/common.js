@@ -77,7 +77,7 @@ const ANIMATION = {
 
 /* opacity config */
 const OPACITY = {
-    DEFAULT: 0.5,
+    DEFAULT: 0.4,
     SELECTED: 0.8,
     UNSELECTED: 0.05
 }

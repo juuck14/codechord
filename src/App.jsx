@@ -24,7 +24,7 @@ function App() {
         } else {
             newSelectedItems = [...selectedItems, d];
             if (newSelectedItems.length > 2) {
-                toast.error("최대 2개의 아이템만 선택할 수 있습니다.");
+                toast.error("You can only select up to 2 items for comparison.");
                 return;
             }
         }

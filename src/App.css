@@ -18,6 +18,10 @@ body {
   font-family: var(--main-font);
 }
 
+.Toastify__toast {
+  font-family: var(--main-font) !important;
+}
+
 svg text {
   font-family: var(--main-font);
 }
@@ -93,6 +97,15 @@ svg .tick line, svg .tick text, svg .domain{
   justify-content: center;
   flex-wrap: wrap;
   column-gap: 40px;
+}
+
+.legend-area .legend-item {
+  display: flex;
+  align-items: center;
+}
+
+.legend-area .legend-item.unselected {
+  opacity: 0.5;
 }
 
 .color-indicator-sm {

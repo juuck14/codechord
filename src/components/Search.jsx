@@ -1,6 +1,7 @@
 import data from "@/data/datatest.json"
 import { ReactSearchAutocomplete } from 'react-search-autocomplete'
 import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
 
 export default function Search({ items, setItems, addedItem, setAddedItem }) {
     useEffect(() => {
@@ -24,9 +25,9 @@ export default function Search({ items, setItems, addedItem, setAddedItem }) {
     const handleOnSelect = async (item) => {
         // the item selected
         if (items.some(i => i.id === item.id)) {
-            console.log('Item already exists in the list')
+            toast.error('Item already exists in the list')
         } else if (items.length >= 10) {
-            console.log('Maximum of 10 items reached')
+            toast.error('Maximum of 10 items reached')
         } else {
             setItems([...items, item])
             setAddedItem(item)
@@ -37,10 +38,10 @@ export default function Search({ items, setItems, addedItem, setAddedItem }) {
     }
 
     const clearInput = () => {
-        const input = document.querySelector("#root > div > div:nth-child(2) > div.App > header > div > div > div > input[type=text]")
+        const input = document.querySelector(".search-bar input")
         input.style.opacity = 0
         setTimeout(() => {
-            const clear = document.querySelector("#root > div > div:nth-child(2) > div.App > header > div > div > div > div")
+            const clear = document.querySelector(".search-bar .clear-icon")
             console.log(clear)
             clear.click()
             input.style.opacity = 1

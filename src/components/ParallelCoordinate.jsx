@@ -309,7 +309,7 @@ const ParallelCoordinates = ({
                 <div className="graph-area" ref={ref}></div>
                 <div className="legend-area">
                     {items.map((item, index) => (
-                        <div className="flex items-center">
+                        <div className={`legend-item ${selectedItems.length == 0 || selectedItems.some(v => v.id === item.id)? '' : 'unselected'}`} key={item.id}>
                             <div
                                 className="color-indicator-sm"
                                 style={{
