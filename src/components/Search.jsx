@@ -8,7 +8,7 @@ export default function Search({ items, setItems, addedItem, setAddedItem }) {
         data.forEach((item , index) => {
             item.id = index
         })
-        setItems([...items, ...data.slice(0, 5)]) // Initialize with first 10 items
+        // setItems([...items, ...data.slice(0, 5)]) // Initialize with first 10 items
     }, [])
 
     const handleOnSearch = (string, results) => {
