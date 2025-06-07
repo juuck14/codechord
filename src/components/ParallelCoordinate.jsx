@@ -9,9 +9,10 @@ import {
     OPACITY,
     isSelected,
     chordToString,
-    PARALLEL_COORDINATE_STYLE
+    PARALLEL_COORDINATE_STYLE,
 } from "../common";
 import { toast } from "react-toastify";
+import seedrandom from "seedrandom";
 
 const ParallelCoordinates = ({
     items,
@@ -61,12 +62,12 @@ const ParallelCoordinates = ({
         <div style="font-weight: bold;">
             <div
             class="color-indicator-sm"
-            style="display: inline-block; background-color: ${COLOR_SCHEME[d.index]}">
+            style="background-color: ${COLOR_SCHEME[d.index]}">
             </div>
             ${d.artist} - ${d.song}
         </div>
-        <div>Section: ${d.section}</div>
-        <div>Chords: ${d.chords
+        <div>Section : ${d.section}</div>
+        <div>Chords : ${d.chords
             .map((c) => chordToString(c, d.key))
             .join(" - ")}</div>
     `;
@@ -111,9 +112,24 @@ const ParallelCoordinates = ({
 
         // 선 그리기 함수
         const path = (d) => {
-            const points = d.chords.map(c => c.root);
-            const validPoints = points.map(p => p >= 1 && p <= 7);
-			const coords = dimensions.map(p => [x(p), y(points[p])]).filter((p, i) => validPoints[i] && p[1] !== undefined);
+            const roots = d.chords.map(c => c.root);
+            const validRoots = roots.map(root => root >= 1 && root <= 7);
+			const coords = dimensions.map(p => {
+                let root = roots[p];
+                const rng = new seedrandom(d.id + "-" + d.section + "-" + p);
+                let offset = 0;
+                const magnitude = 0.15
+                if (root == 1) {
+                    offset = rng()
+                } else if (root == 7) {
+                    offset = -rng()
+                } else {
+                    offset = (rng() - 0.5); // -0.05 ~ 0.05
+                }
+                offset *= magnitude;
+                
+                return [x(p), y(root + offset)];
+            }).filter((p, i) => validRoots[i] && p[1] !== undefined);
 
             return d3.line().curve(d3.curveCardinal.tension(0.7))(coords);
         };
@@ -146,6 +162,7 @@ const ParallelCoordinates = ({
             svg.selectAll("path")
                 .each(function () {
                     d3.select(this)
+                        //.attr("stroke-dasharray", d => STROKE_DASHARRAYS[d.section] || "")
                         .transition()
                         .duration(ANIMATION.HOVER_DURATION)
                         .ease(ANIMATION.EASE)
@@ -202,8 +219,6 @@ const ParallelCoordinates = ({
             .style("cursor", "pointer")
             .attr("stroke-width", 3)
             .each(function () {
-                // d3.select(this)
-                //   .attr("stroke-dasharray", d => STROKE_DASHARRAYS[d.section] || "")
                 const totalLength = this.getTotalLength();
                 
                 if (addedItem && addedItem.id === this.__data__.id) {
@@ -215,6 +230,7 @@ const ParallelCoordinates = ({
 
                     d3.selectAll("path")
                         .filter(d => !isEmpty(d) && d.id !== this.__data__.id)
+                        //.attr("stroke-dasharray", d => STROKE_DASHARRAYS[d.section] || "")
                         .transition()
                         .duration(ANIMATION.INOUT_DURATION)
                         .ease(ANIMATION.EASE)
@@ -240,6 +256,7 @@ const ParallelCoordinates = ({
                         .transition()
                         .duration(ANIMATION.INOUT_DURATION)
                         .ease(ANIMATION.EASE)
+                        //.attr("stroke-dasharray", d => STROKE_DASHARRAYS[d.section] || "")
                         .style("opacity", d => getMyOpacity(d, selectedItemsRef.current))
                         ;
                         
@@ -321,17 +338,7 @@ const ParallelCoordinates = ({
                 </div>
             </div>
             <div
-                style={{
-                    position: "absolute",
-                    visibility: "hidden",
-                    background: "#fff",
-                    border: "1px solid #999",
-                    borderRadius: "5px",
-                    padding: "8px",
-                    fontSize: "12px",
-                    pointerEvents: "none",
-                    boxShadow: "0px 0px 5px rgba(0,0,0,0.3)",
-                }}
+                className="tooltip"
                 ref={tooltip}
             ></div>
         </>

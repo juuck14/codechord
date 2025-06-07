@@ -1,18 +1,30 @@
 import * as d3 from 'd3';
 
 const COLOR_SCHEME = [
-    "#0095FF",  // 파랑
-    "#00E096",  // 민트
-    "#EF4444",  // 빨강
-    "#A700FF",  // 퍼플
-    "#FFA500",  // 주황
-    "#00C8FF",  // 밝은 블루
-    "#FF69B4",  // 핑크
-    "#8A2BE2",  // 블루바이올렛
-    "#00FF7F",  // 스프링그린
-    "#FFD700",  // 골드
+    "#0095FF",
+    "#00E096",
+    "#EF4444",
+    "#A700FF",
+    "#FFA800",
+    "#FB5607",
+    "#FF4296",
+    "#3B53A9",
+    "#645244",
+    "#2F2F2F",
 ];
 
+const COLOR_SCHEME_DARK = [
+    "#006fc2",  // from #0095FF
+    "#00986c",  // from #00E096
+    "#b73232",  // from #EF4444
+    "#7a00b3",  // from #A700FF
+    "#c68600",  // from #FFA800
+    "#c13f06",  // from #FB5607
+    "#ba2f6b",  // from #FF4296
+    "#2b3e7e",  // from #3B53A9
+    "#4b3d36",  // from #645244
+    "#1e1e1e",  // from #2F2F2F
+];
 
 const GRAY_COLOR_SCHEME = [
     "#EEEEEE",
@@ -20,6 +32,7 @@ const GRAY_COLOR_SCHEME = [
     "#CCCCCC",
     "#BBBBBB",
     "#9A9A9A",
+    "#7A7A7A",
 ]
 
 const ROMAN_NUMERALS = [
@@ -27,25 +40,25 @@ const ROMAN_NUMERALS = [
 ]
 
 const STROKE_DASHARRAYS = {
-    'Instrumental Intro': "",
+    'Verse': "",
+    'Chorus': "7,3",
+    'Intro': "15,5",
+    'Instrumental Intro': "5,3,2,3",
     'Solo': "2,2",
     'Intro and Verse': "4,4",
     'Pre-Chorus': "6,3",
     'Pre-Outro': "8,4",
     'Outro 2': "10,5",
     'Intro and Chorus': "1,5",
-    'Bridge': "2,6",
+    'Bridge': "6,6",
     'Chorus Lead-Out': "10,4,2,4",
     'Instrumental': "10,4,2,4,2,4",
-    'Intro': "15,5",
     'Outro 1': "5,10",
-    'Chorus': "3,7",
     'Solo 3': "8,2,2,2",
     'Outro': "12,3,3,3",
     'Pre-Chorus and Chorus': "6,2,2,2",
     'Solo 2': "7,3,2,3",
     'Solo 1': "9,3,1,3",
-    'Verse': "5,3,2,3",
     'Verse and Pre-Chorus': "4,2,1,2"
 };
 
@@ -77,9 +90,9 @@ const ANIMATION = {
 
 /* opacity config */
 const OPACITY = {
-    DEFAULT: 0.4,
-    SELECTED: 0.8,
-    UNSELECTED: 0.05
+    DEFAULT: 0.3,
+    SELECTED: 0.9,
+    UNSELECTED: 0.1
 }
 
 const isSelected = (selectedItems, d) => {
@@ -218,6 +231,7 @@ const COMPARE_STYLE = {
 
 export {
     COLOR_SCHEME,
+    COLOR_SCHEME_DARK,
     GRAY_COLOR_SCHEME,
     ROMAN_NUMERALS,
     STROKE_DASHARRAYS,
@@ -229,5 +243,5 @@ export {
     chordToString,
     addVariants,
     PARALLEL_COORDINATE_STYLE,
-    COMPARE_STYLE
+    COMPARE_STYLE,
 }

@@ -105,7 +105,7 @@ svg .tick line, svg .tick text, svg .domain{
 }
 
 .legend-area .legend-item.unselected {
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .color-indicator-sm {
@@ -113,6 +113,7 @@ svg .tick line, svg .tick text, svg .domain{
   height: 11px;
   margin-right: 6px;
   border-radius: 50%;
+  display: inline-block;
 }
 
 .main-title{
@@ -240,4 +241,26 @@ svg .tick line, svg .tick text, svg .domain{
   fill: #7B91B0;
   text-anchor: middle;
   font-size: 9px;
+}
+
+.compare-area .diatonic-mid {
+  text-anchor: middle;
+  fill: white;
+  stroke: var(--x-label-color);
+  stroke-width: .4px;
+  font-size: 10px;
+  pointer-events: none;
+}
+
+.tooltip {
+    position: absolute;
+    visibility: hidden;
+    background: #fff;
+    border: 1px solid #999;
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 12px;
+    pointer-events: none;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+    z-index: 200;
 }

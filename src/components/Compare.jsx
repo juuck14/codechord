@@ -2,11 +2,15 @@ import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import {
     COLOR_SCHEME,
+    COLOR_SCHEME_DARK,
     ROMAN_NUMERALS,
     CHORD_TYPES,
     COMPARE_STYLE,
     GRAY_COLOR_SCHEME,
-    addVariants
+    addVariants,
+    ANIMATION,
+    OPACITY,
+    chordToString,
 } from "@/common";
 import ratios from "@/data/ratios.json";
 
@@ -16,6 +20,26 @@ const Compare = ({ selectedItems }) => {
     useEffect(() => {
         drawChart()
     }, [selectedItems]);
+    
+
+    const parseTooltip = (chord, d, ratio, isSameColor) => {
+        return `
+            <div style="font-weight: bold;">
+                <div
+                class="color-indicator-sm"
+                style="background-color: ${COLOR_SCHEME[d.index]};
+                ${isSameColor ? `border: 2px solid ${COLOR_SCHEME_DARK[d.index]}` : ""}">
+                </div>
+                Chord : ${chordToString(chord, d.key)}
+            </div>
+            <div>Beat : ${chord.beat}</div>
+            <div>Variant : ${addVariants(chord) ? addVariants(chord) : "none"}</div>
+            <div>% of The Variant : ${(ratio * 100).toFixed(2)}%</div>
+            <div>Song : ${d.song} (${d.section})</div>
+        `;
+    };
+    
+    const tooltip = useRef();
 
     const drawChart = () => {
         const maxLength = Math.max(...selectedItems.map(item => item.chords.length));
@@ -68,10 +92,14 @@ const Compare = ({ selectedItems }) => {
             const isSameChord = numberOfAlive > 1 && new Set(selectedItems.map(item => item.chords[i].root)).size === 1;
             let order = 0
 
+            const group = svg
+                .append("g")
+                .attr("transform", `translate(${groupX}, 0)`)
+
             // Bar i
-            svg
+            group
                 .append("text")
-                .attr("x", groupX + 0.5 * COMPARE_STYLE.BAR_WIDTH)
+                .attr("x", 0.5 * COMPARE_STYLE.BAR_WIDTH)
                 .attr("y", COMPARE_STYLE.HEIGHT())
                 .text(`Bar ${i + 1}`)
                 .attr("class", "x-label");
@@ -90,28 +118,70 @@ const Compare = ({ selectedItems }) => {
                 let y0 = barStartY;
                 let dataBarWidth = (COMPARE_STYLE.BAR_WIDTH - (numberOfAlive - 1) * COMPARE_STYLE.BAR_GAP) / numberOfAlive
                 let realBarWidth = dataBarWidth
-                let barX = groupX + order * (dataBarWidth + COMPARE_STYLE.BAR_GAP);
+                let barX = order * (dataBarWidth + COMPARE_STYLE.BAR_GAP);
                 
                 if (isSameChord) {
                     dataBarWidth = COMPARE_STYLE.BAR_WIDTH / numberOfAlive;
                     realBarWidth = COMPARE_STYLE.BAR_WIDTH
-                    barX = groupX + order * dataBarWidth;
+                    barX = order * dataBarWidth;
                 }
 
+                const isSameColor = selectedItems.length > 1
+                    && selectedItems[0].index === selectedItems[1].index
+                    && j === 1
+                const bar = group
+                    .append("g")
+                    .attr("transform", `translate(${barX}, 0)`)
+                    .lower()
+                    .on("mouseover", function (event) {
+                        
+                        d3.select(this)
+                            .selectAll(`.gray-rect`)
+                            .transition()
+                            .duration(ANIMATION.HOVER_DURATION)
+                            .ease(ANIMATION.EASE)
+                            .style("opacity", OPACITY.UNSELECTED);
+                        tooltip.current.style.visibility = "visible";
+                        tooltip.current.innerHTML = parseTooltip(chord, d, allVariantsRatios[variants], isSameColor);
+                    })
+                    .on("mousemove", function (event) {
+                        tooltip.current.style.top = event.pageY + 10 + "px";
+                        tooltip.current.style.left = event.pageX + 10 + "px";
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this)
+                            .selectAll(".gray-rect")
+                            .transition()
+                            .duration(ANIMATION.HOVER_DURATION)
+                            .style("opacity", "1");
+                        tooltip.current.style.visibility = "hidden";
+                    })
+
                 // DATA BAR
-                allVariants.forEach((k) => {
+                allVariants.forEach((k, index) => {
                     const h = allVariantsRatios[k] * COMPARE_STYLE.BAR_HEIGHT;
 
                     if (k === variants) {
-                        svg
+                        bar
                         .append("rect")
-                        .attr("x", barX)
+                        .attr("x", 0)
                         .attr("y", y0)
                         .attr("width", dataBarWidth)
                         .attr("height", h)
                         .attr("fill", COLOR_SCHEME[d.index])
-                        .style("z-index", 10);
+                        .attr("stroke", (isSameColor ? COLOR_SCHEME_DARK[d.index] : "none"))
+                        .attr("stroke-width", (isSameColor ? 2 : 0))
                     }
+
+                    bar
+                        .append("rect")
+                        .attr("x", 0)
+                        .attr("y", y0)
+                        .attr("width", dataBarWidth)
+                        .attr("height", h)
+                        .attr("fill", GRAY_COLOR_SCHEME[index] || GRAY_COLOR_SCHEME[GRAY_COLOR_SCHEME.length - 1])
+                        .attr("class", "gray-rect")
+                        .lower()
                     y0 += h;
                 });
 
@@ -120,23 +190,25 @@ const Compare = ({ selectedItems }) => {
                 y0 = COMPARE_STYLE.X_LABEL_TOP_HEIGHT + COMPARE_STYLE.MARGIN.TOP;
                 allVariants.forEach((k, index) => {
                     const h = allVariantsRatios[k] * COMPARE_STYLE.BAR_HEIGHT;
-
-                    svg
-                        .append("rect")
-                        .attr("x", barX)
-                        .attr("y", y0)
-                        .attr("width", realBarWidth)
-                        .attr("height", h)
-                        .attr("fill", GRAY_COLOR_SCHEME[index])
-                        .lower()
-
+                    
                     // 중간 다이어토닉
-
+                    if(h > 18){
+                        const chord = ROMAN_NUMERALS[root - 1] + k
+                        let fontSize = Math.floor(Math.min(14, (h / 2) - 1));
+                        group
+                            .append("text")
+                            .attr("x", barX + realBarWidth / 2)
+                            .attr("y", y0 + (h + fontSize) / 2)
+                            .attr("class", `diatonic-mid`)
+                            .style("font-size", fontSize)
+                            .text(`${chord}`)
+                            .raise()
+                    }
                     y0 += h;
                 })
 
                 // 상단 다이어토닉
-                const diatonicTop = svg
+                const diatonicTop = group
                     .append("g")
                     .attr("transform", `translate(${barX})`)
                     .attr("class", "diatonic-top")
@@ -180,6 +252,10 @@ const Compare = ({ selectedItems }) => {
                     </div>
                 ))}
             </div>
+            <div
+                className="tooltip"
+                ref={tooltip}
+            ></div>
         </div>
     );
 };
