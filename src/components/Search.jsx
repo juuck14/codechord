@@ -1,4 +1,4 @@
-import data from "@/data/datatest.json"
+import data from "@/data/data.json"
 import { ReactSearchAutocomplete } from 'react-search-autocomplete'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
